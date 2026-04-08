@@ -416,6 +416,14 @@ class Client implements ClientInterface, \Psr\Http\Client\ClientInterface
                     $options['curl'][\CURLOPT_HTTPAUTH] = \CURLAUTH_NTLM;
                     $options['curl'][\CURLOPT_USERPWD] = "$value[0]:$value[1]";
                     break;
+                case 'bearer':
+                    if (defined('CURLAUTH_BEARER')) {
+                        $options['curl'][\CURLOPT_HTTPAUTH] = \CURLAUTH_BEARER;
+                        $options['curl'][\CURLOPT_XOAUTH2_BEARER] = $value[0];
+                    } else {
+                        throw new InvalidArgumentException('Bearer authentication only supported with curl handler from version 7.61.0 and PHP from version 7.3');
+                    }
+                    break;
             }
         }
 

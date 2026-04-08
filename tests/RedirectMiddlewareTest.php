@@ -302,6 +302,34 @@ class RedirectMiddlewareTest extends TestCase
         $client->get('http://example.com?a=b', ['auth' => ['testuser', 'testpass', $auth]]);
     }
 
+    public function testRemoveCurlBarerAuthorizationOptionsOnRedirectCrossHost()
+    {
+        if (PHP_VERSION_ID < 70300) {
+            $this->markTestSkipped('This test requires PHP version 7.3 or higher.');
+        }
+        if (!defined('\CURLOPT_HTTPAUTH')) {
+            self::markTestSkipped('ext-curl is required for this test');
+        }
+        if (!defined('\CURLAUTH_BEARER')) {
+            self::markTestSkipped('curl version 7.61.0 or higher is required for this test');
+        }
+
+        $mock = new MockHandler([
+            new Response(302, ['Location' => 'http://test.com']),
+            static function (RequestInterface $request, $options) {
+                self::assertFalse(
+                    isset($options['curl'][\CURLOPT_XOAUTH2_BEARER]),
+                    'curl options still contain CURLOPT_XOAUTH2_BEARER entry'
+                );
+
+                return new Response(200);
+            },
+        ]);
+        $handler = HandlerStack::create($mock);
+        $client = new Client(['handler' => $handler]);
+        $client->get('http://example.com?a=b', ['auth' => ['testtoken', '', 'bearer']]);
+    }
+
     /**
      * @testWith ["digest"]
      *           ["ntlm"]
@@ -330,6 +358,34 @@ class RedirectMiddlewareTest extends TestCase
         $handler = HandlerStack::create($mock);
         $client = new Client(['handler' => $handler]);
         $client->get('http://example.com?a=b', ['auth' => ['testuser', 'testpass', $auth]]);
+    }
+
+    public function testRemoveCurlBearerAuthorizationOptionsOnRedirectCrossPort()
+    {
+        if (PHP_VERSION_ID < 70300) {
+            $this->markTestSkipped('This test requires PHP version 7.3 or higher.');
+        }
+        if (!defined('\CURLOPT_HTTPAUTH')) {
+            self::markTestSkipped('ext-curl is required for this test');
+        }
+        if (!defined('\CURLAUTH_BEARER')) {
+            self::markTestSkipped('curl version 7.61.0 or higher is required for this test');
+        }
+
+        $mock = new MockHandler([
+            new Response(302, ['Location' => 'http://example.com:81/']),
+            static function (RequestInterface $request, $options) {
+                self::assertFalse(
+                    isset($options['curl'][\CURLOPT_XOAUTH2_BEARER]),
+                    'curl options still contain CURLOPT_XOAUTH2_BEARER entry'
+                );
+
+                return new Response(200);
+            },
+        ]);
+        $handler = HandlerStack::create($mock);
+        $client = new Client(['handler' => $handler]);
+        $client->get('http://example.com?a=b', ['auth' => ['testtoken', '', 'bearer']]);
     }
 
     /**
@@ -362,6 +418,34 @@ class RedirectMiddlewareTest extends TestCase
         $client->get('https://example.com?a=b', ['auth' => ['testuser', 'testpass', $auth]]);
     }
 
+    public function testRemoveCurlBearerAuthorizationOptionsOnRedirectCrossScheme()
+    {
+        if (PHP_VERSION_ID < 70300) {
+            $this->markTestSkipped('This test requires PHP version 7.3 or higher.');
+        }
+        if (!defined('\CURLOPT_HTTPAUTH')) {
+            self::markTestSkipped('ext-curl is required for this test');
+        }
+        if (!defined('\CURLAUTH_BEARER')) {
+            self::markTestSkipped('curl version 7.61.0 or higher is required for this test');
+        }
+
+        $mock = new MockHandler([
+            new Response(302, ['Location' => 'http://example.com?a=b']),
+            static function (RequestInterface $request, $options) {
+                self::assertFalse(
+                    isset($options['curl'][\CURLOPT_XOAUTH2_BEARER]),
+                    'curl options still contain CURLOPT_XOAUTH2_BEARER entry'
+                );
+
+                return new Response(200);
+            },
+        ]);
+        $handler = HandlerStack::create($mock);
+        $client = new Client(['handler' => $handler]);
+        $client->get('https://example.com?a=b', ['auth' => ['testtoken', '', 'bearer']]);
+    }
+
     /**
      * @testWith ["digest"]
      *           ["ntlm"]
@@ -383,6 +467,10 @@ class RedirectMiddlewareTest extends TestCase
                     isset($options['curl'][\CURLOPT_USERPWD]),
                     'curl options still contain CURLOPT_USERPWD entry'
                 );
+                self::assertFalse(
+                    isset($options['curl'][\CURLOPT_XOAUTH2_BEARER]),
+                    'curl options still contain CURLOPT_XOAUTH2_BEARER entry'
+                );
 
                 return new Response(200);
             },
@@ -390,6 +478,34 @@ class RedirectMiddlewareTest extends TestCase
         $handler = HandlerStack::create($mock);
         $client = new Client(['handler' => $handler]);
         $client->get('https://example.com?a=b', ['auth' => ['testuser', 'testpass', $auth]]);
+    }
+
+    public function testRemoveCurlBearerAuthorizationOptionsOnRedirectCrossSchemeSamePort()
+    {
+        if (PHP_VERSION_ID < 70300) {
+            $this->markTestSkipped('This test requires PHP version 7.3 or higher.');
+        }
+        if (!defined('\CURLOPT_HTTPAUTH')) {
+            self::markTestSkipped('ext-curl is required for this test');
+        }
+        if (!defined('\CURLAUTH_BEARER')) {
+            self::markTestSkipped('curl version 7.61.0 or higher is required for this test');
+        }
+
+        $mock = new MockHandler([
+            new Response(302, ['Location' => 'http://example.com:80?a=b']),
+            static function (RequestInterface $request, $options) {
+                self::assertFalse(
+                    isset($options['curl'][\CURLOPT_XOAUTH2_BEARER]),
+                    'curl options still contain CURLOPT_XOAUTH2_BEARER entry'
+                );
+
+                return new Response(200);
+            },
+        ]);
+        $handler = HandlerStack::create($mock);
+        $client = new Client(['handler' => $handler]);
+        $client->get('https://example.com?a=b', ['auth' => ['testtoken', '', 'bearer']]);
     }
 
     /**
@@ -420,6 +536,34 @@ class RedirectMiddlewareTest extends TestCase
         $handler = HandlerStack::create($mock);
         $client = new Client(['handler' => $handler]);
         $client->get('http://example.com?a=b', ['auth' => ['testuser', 'testpass', $auth]]);
+    }
+
+    public function testNotRemoveCurlBearerAuthorizationOptionsOnRedirect()
+    {
+        if (PHP_VERSION_ID < 70300) {
+            $this->markTestSkipped('This test requires PHP version 7.3 or higher.');
+        }
+        if (!defined('\CURLOPT_HTTPAUTH')) {
+            self::markTestSkipped('ext-curl is required for this test');
+        }
+        if (!defined('\CURLAUTH_BEARER')) {
+            self::markTestSkipped('curl version 7.61.0 or higher is required for this test');
+        }
+
+        $mock = new MockHandler([
+            new Response(302, ['Location' => 'http://example.com/2']),
+            static function (RequestInterface $request, $options) {
+                self::assertTrue(
+                    isset($options['curl'][\CURLOPT_XOAUTH2_BEARER]),
+                    'curl options still contain CURLOPT_XOAUTH2_BEARER entry'
+                );
+
+                return new Response(200);
+            },
+        ]);
+        $handler = HandlerStack::create($mock);
+        $client = new Client(['handler' => $handler]);
+        $client->get('http://example.com?a=b', ['auth' => ['testtoken', '', 'bearer']]);
     }
 
     public static function crossOriginRedirectProvider()

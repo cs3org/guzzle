@@ -94,6 +94,11 @@ class RedirectMiddleware
                 $options['curl'][\CURLOPT_HTTPAUTH],
                 $options['curl'][\CURLOPT_USERPWD]
             );
+            if (defined('CURLOPT_XOAUTH2_BEARER')) {
+                unset(
+                    $options['curl'][\CURLOPT_XOAUTH2_BEARER]
+                );
+            }
         }
 
         if (isset($options['allow_redirects']['on_redirect'])) {
